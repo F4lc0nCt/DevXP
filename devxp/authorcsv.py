@@ -1,20 +1,40 @@
+"""
+Module for class AuthorCSV
+"""
 
-import os
 import csv
+import logging
+import os
+
 import developer
 
 
 class AuthorCSV:
+    """
+    Class in charge do conversion between a developer dictionary and a CSV file.
+    """
 
-    OUTPUT_FILENAME = "author_data.csv"
+    OUTPUT_FILENAME = "out_author.csv"
 
     def __init__(self, dev_dict, work_dir):
+        """
+        Allow to do conversion between a developer dictionary and a CSV file.
+
+        :param dev_dict: Developer dictionary
+        :type dev_dict: dict(str->Developer)
+        :param work_dir: Directory where are located CSV
+        :type work_dir: str
+        """
         self.dev_dict = dev_dict
         self.work_dir = work_dir
         self.csv_path = os.path.join(self.work_dir, AuthorCSV.OUTPUT_FILENAME)
 
     def save_data_in_csv(self):
-        with open(self.csv_path, mode='w', newline='') as csv_file:
+        """
+        Save the developer dictionary of the class in the CSV.
+        """
+        logging.info('Saving author information in %s', self.csv_path)
+        with open(self.csv_path, mode='w', newline='', encoding='UTF-8') as csv_file:
             author_writer = csv.DictWriter(csv_file,
                                            fieldnames=developer.Developer.FIELDS.keys(),
                                            delimiter=';',
@@ -24,11 +44,38 @@ class AuthorCSV:
             try:
                 [author_writer.writerow(x.get_dict_values()) for x in self.dev_dict.values()]
             except UnicodeEncodeError as exc:
-                print('Catch exception: {0}'.format(exc.reason))
+                logging.error('Catch exception: %s', exc.reason)
 
-    def update_data_from_csv(self):
-        with open(self.csv_path, mode='r', newline='') as csv_file:
+    def update_data_from_csv(self, path):
+        """
+        Retrieve information from a modified CSV file to update the developer information
+        such as 'has_left' and 'aliases'
+
+        :param path: Input CSV path
+        :type path: str
+        """
+        logging.info('Retrieving author information from %s', path)
+        with open(path, mode='r', newline='', encoding='UTF-8') as csv_file:
             author_reader = csv.DictReader(csv_file, delimiter=';',
                                            quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            # TODO
-            print(author_reader)
+            for row in author_reader:
+                # Update the has gone
+                uuid = row['UUID']
+                if uuid not in self.dev_dict.keys():
+                    raise ValueError('Unknown developer {0}'.format(row))
+                self.dev_dict[uuid].has_left = row['Has Left'].lower() == "true"
+                if row['Aliases'] != '[]':
+                    self.dev_dict[uuid].aliases = list(map(int, row['Aliases'].split('_')))
+        logging.info('Update of Author dictionary')
+        uuid_to_delete = []
+        for key, dev in self.dev_dict.items():
+            uuid_aliases = dev.aliases.copy()
+            dev.aliases.clear()
+            for alias in uuid_aliases:
+                logging.info('Linking UUID %s to %s %s', alias, key, dev.name)
+                dev.aliases.append(self.dev_dict[alias])
+                uuid_to_delete.append(alias)
+            dev.update_based_on_aliases()
+        for alias in uuid_to_delete:
+            logging.debug('Deleting UUID %s', alias)
+            del self.dev_dict[alias]
