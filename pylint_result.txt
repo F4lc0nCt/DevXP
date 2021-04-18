@@ -1,11 +1,11 @@
-Date 2021/04/17
+Date 2021/04/18
 ************* Module devxp.main
-main.py:7:0: W0402: Uses of a deprecated module 'optparse' (deprecated-module)
+main.py:8:0: W0402: Uses of a deprecated module 'optparse' (deprecated-module)
 
 
 Report
 ======
-304 statements analysed.
+332 statements analysed.
 
 Statistics by type
 ------------------
@@ -17,7 +17,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |class    |5      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|method   |33     |NC         |NC         |100.00      |0.00     |
+|method   |34     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 |function |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
@@ -31,7 +31,6 @@ External dependencies
     authorcsv (devxp.xpanalyser)
     developer (devxp.authorcsv,devxp.vcsmanager)
     experience (devxp.xpanalyser)
-    main (devxp)
     vcsmanager (devxp.xpanalyser)
     xpanalyser (devxp.main)
 
@@ -43,13 +42,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |373    |53.06 |NC       |NC         |
+|code      |408    |54.11 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |256    |36.42 |NC       |NC         |
+|docstring |265    |35.15 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |4      |0.57  |NC       |NC         |
+|comment   |10     |1.33  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |70     |9.96  |NC       |NC         |
+|empty     |71     |9.42  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -108,4 +107,4 @@ Messages
 
 
 ------------------------------------------------------------------
-Your code has been rated at 9.97/10 (previous run: 9.97/10, +0.00)
+Your code has been rated at 9.97/10 (previous run: 9.94/10, +0.03)
