@@ -59,11 +59,29 @@ class AuthorCSV:
             author_reader = csv.DictReader(csv_file, delimiter=';',
                                            quotechar='"', quoting=csv.QUOTE_MINIMAL)
             for row in author_reader:
-                # Update the has gone
+                # Check if hte uuid is present
                 uuid = row['UUID']
                 if uuid not in self.dev_dict.keys():
                     raise ValueError('Unknown developer {0}'.format(row))
+                # Update the has_left attribute
                 self.dev_dict[uuid].has_left = row['Has Left'].lower() == "true"
+                # Update First Commit Date
+                first_commit_from_csv = row['First Commit']
+                if first_commit_from_csv != self.dev_dict[uuid].get_first_commit_date():
+                    logging.info('Change first commit date of %s - old %s - new %s',
+                                 self.dev_dict[uuid].name,
+                                 self.dev_dict[uuid].get_first_commit_date(),
+                                 first_commit_from_csv)
+                    self.dev_dict[uuid].set_first_commit_date(first_commit_from_csv)
+                # Update First Commit Date
+                last_commit_from_csv = row['Last Commit']
+                if last_commit_from_csv != self.dev_dict[uuid].get_last_commit_date():
+                    logging.info('Change last commit date of %s - old %s - new %s',
+                                 self.dev_dict[uuid].name,
+                                 self.dev_dict[uuid].get_last_commit_date(),
+                                 last_commit_from_csv)
+                    self.dev_dict[uuid].set_last_commit_date(last_commit_from_csv)
+                # Update Aliases
                 if row['Aliases'] != '[]':
                     self.dev_dict[uuid].aliases = list(map(int, row['Aliases'].split('_')))
         logging.info('Update of Author dictionary')
