@@ -18,7 +18,7 @@ class VCSManager:
 
     GIT_LOG_CMD = 'git --git-dir={0}' + os.path.sep + '.git  --work-tree={0} log {1}'
     AUTHOR_FORMAT = '"--pretty=%an;%ae"'
-    AUTHOR_DATE = '--author="{0}" --pretty="%aI"'
+    AUTHOR_DATE = '--author={0} --pretty="%aI"'
 
     def __init__(self, vcs_path):
         """
@@ -78,23 +78,35 @@ class VCSManager:
         logging.info(vcs_cmd)
         idx = 0
         log_percent = 0
-        for dev in self.author_dict.values():
-            if (idx/len(self.author_dict.values())) > log_percent:
-                logging.info('Retrieving commit date: %f%%', 100*idx/len(self.author_dict.values()))
+        dev_to_del = []
+        for key, dev in self.author_dict.items():
+            if (idx/len(self.author_dict.items())) > log_percent:
+                logging.info('Retrieving commit date: %f%%', 100*idx/len(self.author_dict.items()))
                 log_percent += 0.1
             idx += 1
-            logging.debug(vcs_cmd.format(dev.name))
-            commit_dates = subprocess.check_output(vcs_cmd.format(dev.name),
-                                                   shell=True).decode("utf-8")
+            # repr() must be use to convert possible escape characters
+            logging.debug(vcs_cmd.format(VCSManager.repr_spe(dev.name)))
+            commit_dates = subprocess.check_output(vcs_cmd.format(
+                VCSManager.repr_spe(dev.name)), shell=True).decode("utf-8")
             if commit_dates == '':
+                logging.warning(vcs_cmd.format(VCSManager.repr_spe(dev.name)))
+                logging.warning('%s does not have commit for %s', dev.name, commit_dates)
+                dev_to_del.append(key)
                 continue
             dates_list = commit_dates.split('\n')
             first_date = dates_list[-2] if dates_list[-1] == '' else dates_list[-1]
             last_date = dates_list[0]
             logging.debug('Commit of %s - First: %s - Last: %s', dev.name, first_date, last_date)
+            if first_date is None or last_date is None:
+                logging.warning('%s does not have commit for %s', dev.name, commit_dates)
+                dev_to_del.append(key)
+                continue
             dev.set_first_commit_date(first_date)
             dev.set_last_commit_date(last_date)
             self.update_first_commit_date(dev.first_commit_date)
+        for key in dev_to_del:
+            logging.warning('Deletion of %s %s', key, self.author_dict[key].name)
+            del self.author_dict[key]
 
     def update_first_commit_date(self, date):
         """
@@ -107,3 +119,23 @@ class VCSManager:
         if date < self.first_commit_repo:
             logging.debug('First commit of repository is now: %s', date)
             self.first_commit_repo = date
+
+    @staticmethod
+    def repr_spe(esc_str):
+        """
+        Own repr implementation to bypass double quote problem
+
+        :param esc_str: String to change
+        :type esc_str: str
+        :return: New string that can be inserted in a commande line
+        :rtype: str
+        """
+        esc_str = esc_str.replace('@', '@@')
+        esc_str = esc_str.replace('"', '+ at +')
+        esc_str = esc_str.replace("'", '- at -')
+        esc_str = repr(esc_str)[1:-1]
+        # Reverse the changes
+        esc_str = esc_str.replace('- at -', "'")
+        esc_str = esc_str.replace('+ at +', r'\"')
+        esc_str = esc_str.replace('@@', '@')
+        return '"%s"' % esc_str
