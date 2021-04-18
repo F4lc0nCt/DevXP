@@ -2,4 +2,4 @@
 Module devxp
 """
 
-import main
+from .developer import Developer
