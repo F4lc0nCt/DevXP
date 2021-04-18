@@ -15,7 +15,7 @@ class Developer:
     # Do not use term ID since it is not supported by Excel as the first Element
     FIELDS = {'UUID': 'uuid', 'Name': 'name', 'Email': 'email',
               'First Commit': 'first_commit_date', 'Last Commit': 'last_commit_date',
-              'Has Left': 'has_left', 'Aliases': 'aliases'}
+              'Has Left': 'has_left', 'Exclude': 'exclude', 'Aliases': 'aliases'}
 
     DATE_FORMAT = "%Y-%m-%d"
 
@@ -36,6 +36,7 @@ class Developer:
         self.last_commit_date = None
         self.aliases = []
         self.has_left = False
+        self.exclude = False
 
     def get_values(self):
         """
@@ -45,7 +46,7 @@ class Developer:
         :rtype: list
         """
         return [self.name, self.email, self.get_first_commit_date(),
-                self.get_last_commit_date(), self.has_left, self.aliases]
+                self.get_last_commit_date(), self.has_left, self.exclude, self.aliases]
 
     def get_dict_values(self):
         """
@@ -66,6 +67,8 @@ class Developer:
         :return: First commit date
         :rtype: str
         """
+        if self.first_commit_date is None:
+            return ""
         return datetime.date.strftime(self.first_commit_date, Developer.DATE_FORMAT)
 
     def get_last_commit_date(self):
@@ -75,6 +78,8 @@ class Developer:
         :return: Last commit date
         :rtype: str
         """
+        if self.last_commit_date is None:
+            return ""
         return datetime.date.strftime(self.last_commit_date, Developer.DATE_FORMAT)
 
     def set_first_commit_date(self, iso_date):
@@ -147,6 +152,9 @@ class Developer:
             if alias.has_left != self.has_left:
                 raise ValueError('Incoherent presence state for {0} a.k.a. {1}'
                                  .format(self.name, alias.name))
+            if alias.exclude:
+                logging.info('Alias %s is excluded, so %s is also excluded', alias.name, self.name)
+                self.exclude = True
             if alias.first_commit_date < self.first_commit_date:
                 self.first_commit_date = alias.first_commit_date
             if alias.last_commit_date > self.last_commit_date:

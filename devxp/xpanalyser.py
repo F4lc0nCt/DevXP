@@ -36,13 +36,15 @@ class XPAnalyser:
         self.author_csv = None
         self.experiences = []
 
-    def retrieve_author_information_from_repo(self):
+    def retrieve_author_information_from_repo(self, full=True):
         """
         Retrieve all the information of the author of the repository
 
+        :param full: Retrieve also the date
+        :type bool
         """
         logging.info('Retrieving author information from repository %s', self.path)
-        self.vcs_mgr.build_author_dict()
+        self.vcs_mgr.build_author_dict(full)
         self.author_csv = authorcsv.AuthorCSV(self.vcs_mgr.author_dict, self.work_dir)
 
     def save_author_information_in_csv(self):
@@ -60,6 +62,7 @@ class XPAnalyser:
         :type path: str
         """
         self.author_csv.update_data_from_csv(os.path.join(self.work_dir, path))
+        self.vcs_mgr.compute_first_commit_date()
 
     def compute_experience(self):
         """
@@ -73,7 +76,8 @@ class XPAnalyser:
         while curr_date <= end_date:
             curr_xp = experience.Experience(curr_date)
             for dev in self.vcs_mgr.author_dict.values():
-                curr_xp.process_dev(dev)
+                if not dev.exclude:
+                    curr_xp.process_dev(dev)
             self.experiences.append(curr_xp)
             curr_date = XPAnalyser.increment_date(curr_date, XPAnalyser.DEFAULT_INCREMENT)
         self.save_analyse()

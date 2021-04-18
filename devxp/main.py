@@ -16,9 +16,9 @@ def main():
     Main method to call the analyser
 
     Examples of commands :
-        python main.py -r ../test/myvcsrepo -w ../output -d -a
+        python main.py -r ../test/myvcsrepo -w ../output -d -o -a
         python main.py -r ../test/myvcsrepo -w ../output -d -a -v -c
-        python main.py -r ../test/myvcsrepo -w ../output -d -p -i in_author.csv -a
+        python main.py -r ../test/myvcsrepo -w ../output -p -i in_author.csv -a
 
     :return: Nothing
     :rtype: None
@@ -30,11 +30,16 @@ def main():
                       dest="repo",
                       default=".",
                       help="Version control repository to analyse")
-    parser.add_option("-d", "--dev",
+    parser.add_option("-d", "--date",
                       action="store_true",
-                      dest="dev",
+                      dest="date",
                       default=False,
-                      help="Retrieve developer name and save in CSV")
+                      help="Retrieve commit date")
+    parser.add_option("-o", "--out",
+                      action="store_true",
+                      dest="out",
+                      default=False,
+                      help="Save author data in CSV for post-processing")
     parser.add_option("-p", "--parse",
                       action="store_true",
                       dest="parse",
@@ -86,9 +91,13 @@ def main():
     logger.addHandler(console_handler)
 
     logging.info('\n\n\nNew run with options: %s and args: %s', options, args)
+    # Check consistency
+    if not options.date and not options.parse:
+        raise RuntimeError('Users must use at least one option:'
+                           'date retrieving (-d) or date parsing (-p).')
     xp_analyser = xpanalyser.XPAnalyser(options.repo, options.workdir)
-    xp_analyser.retrieve_author_information_from_repo()
-    if options.dev:
+    xp_analyser.retrieve_author_information_from_repo(options.date)
+    if options.out:
         xp_analyser.save_author_information_in_csv()
     if options.parse:
         xp_analyser.get_author_information_from_csv(options.in_csv)

@@ -32,13 +32,16 @@ class VCSManager:
         self.author_dict = dict()
         self.first_commit_repo = datetime.date.max
 
-    def build_author_dict(self):
+    def build_author_dict(self, full=True):
         """
         Build the author directory by getting the authors list and their first/last commit dates
 
+        :param full: Retrieve also the date
+        :type bool
         """
         self.retrieve_author()
-        self.retrieve_commit_date()
+        if full:
+            self.retrieve_commit_date()
 
     def retrieve_author(self):
         """
@@ -108,9 +111,17 @@ class VCSManager:
             logging.warning('Deletion of %s %s', key, self.author_dict[key].name)
             del self.author_dict[key]
 
-    def update_first_commit_date(self, date):
+    def compute_first_commit_date(self):
         """
         Compute the start date of the project based on the first commit dates
+        of all the developers.
+        """
+        for dev in self.author_dict.values():
+            self.update_first_commit_date(dev.first_commit_date)
+
+    def update_first_commit_date(self, date):
+        """
+        Update the start date of the project based on the first commit dates
         of all the developers.
 
         :param date: New possible start date

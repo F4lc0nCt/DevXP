@@ -65,6 +65,8 @@ class AuthorCSV:
                     raise ValueError('Unknown developer {0}'.format(row))
                 # Update the has_left attribute
                 self.dev_dict[uuid].has_left = row['Has Left'].lower() == "true"
+                # Update the exclude attribute
+                self.dev_dict[uuid].exclude = row['Exclude'].lower() == "true"
                 # Update First Commit Date
                 first_commit_from_csv = row['First Commit']
                 if first_commit_from_csv != self.dev_dict[uuid].get_first_commit_date():
@@ -83,7 +85,7 @@ class AuthorCSV:
                     self.dev_dict[uuid].set_last_commit_date(last_commit_from_csv)
                 # Update Aliases
                 if row['Aliases'] != '[]':
-                    self.dev_dict[uuid].aliases = list(map(int, row['Aliases'].split('_')))
+                    self.dev_dict[uuid].aliases = row['Aliases'].split('_')
         logging.info('Update of Author dictionary')
         uuid_to_delete = []
         for key, dev in self.dev_dict.items():

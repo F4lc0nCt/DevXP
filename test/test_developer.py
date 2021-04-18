@@ -24,6 +24,7 @@ class TestDeveloper(unittest.TestCase):
         self.assertEqual(dev.last_commit_date, None)
         self.assertEqual(len(dev.aliases), 0)
         self.assertEqual(dev.has_left, False)
+        self.assertEqual(dev.exclude, False)
 
     def test_getter_setter(self):
         test_hash = hashlib.md5(self.TEST_NAME.encode('utf8')).hexdigest()
@@ -37,13 +38,14 @@ class TestDeveloper(unittest.TestCase):
         self.assertEqual(dev.get_first_commit_date(), first_commit)
         self.assertEqual(dev.get_last_commit_date(), last_commit)
         all_values = dev.get_values()
-        self.assertEqual(len(all_values), 6)
+        self.assertEqual(len(all_values), 7)
         self.assertEqual(all_values[0], self.TEST_NAME)
         self.assertEqual(all_values[1], self.TEST_EMAIL)
         self.assertEqual(all_values[2], first_commit)
         self.assertEqual(all_values[3], last_commit)
         self.assertEqual(all_values[4], False)
-        self.assertEqual(len(all_values[5]), 0)
+        self.assertEqual(all_values[5], False)
+        self.assertEqual(len(all_values[6]), 0)
 
         all_dict_values = dev.get_dict_values()
         self.assertTrue('UUID' in all_dict_values.keys())
@@ -58,6 +60,8 @@ class TestDeveloper(unittest.TestCase):
         self.assertEqual(all_dict_values['Last Commit'], last_commit_date)
         self.assertTrue('Has Left' in all_dict_values.keys())
         self.assertEqual(all_dict_values['Has Left'], False)
+        self.assertTrue('Exclude' in all_dict_values.keys())
+        self.assertEqual(all_dict_values['Exclude'], False)
         self.assertTrue('Aliases' in all_dict_values.keys())
         self.assertEqual(len(all_dict_values['Aliases']), 0)
 
@@ -106,6 +110,9 @@ class TestDeveloper(unittest.TestCase):
         dev.update_based_on_aliases()
         self.assertEqual(dev.get_first_commit_date(), first_commit_alias)
         self.assertEqual(dev.get_last_commit_date(), last_commit_alias)
+        dev_alias.exclude = True
+        dev.update_based_on_aliases()
+        self.assertTrue(dev.exclude)
         dev_alias.has_left = True
         exception_raised = False
         try:
