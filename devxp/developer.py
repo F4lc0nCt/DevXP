@@ -144,8 +144,8 @@ class Developer:
         """
         logging.debug('Updating commit date of %s %s', self.uuid, self.name)
         for alias in self.aliases:
-            if alias.has_left and not self.has_left:
-                raise ValueError('Incoherent presence state for %{0} a.k.a. {1}'
+            if alias.has_left != self.has_left:
+                raise ValueError('Incoherent presence state for {0} a.k.a. {1}'
                                  .format(self.name, alias.name))
             if alias.first_commit_date < self.first_commit_date:
                 self.first_commit_date = alias.first_commit_date
